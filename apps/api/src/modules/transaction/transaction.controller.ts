@@ -1,55 +1,38 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { transactionService } from "./transaction.service";
 
-export const transactionController = {
-  async create(req: Request, res: Response) {
-    try {
-      const userId = req.user?.id; // dari JWT
-      const result = await transactionService.create(
-        userId as string,
-        req.body
-      );
-      res.status(201).json({ success: true, data: result });
-    } catch (err: any) {
-      res.status(err.status || 500).json({
-        success: false,
-        message: err.message,
-      });
-    }
-  },
+class TransactionController {
+  create(req: Request, res: Response, next: NextFunction) {
+    const userId = req.user?.id as string;
 
-  async getAll(req: Request, res: Response) {
-    try {
-      const result = await transactionService.getAll();
-      res.json({ success: true, data: result });
-    } catch (err: any) {
-      res.status(500).json({ success: false, message: err.message });
-    }
-  },
+    transactionService
+      .create(userId, req.body)
+      .then((data) => res.status(201).json({ success: true, data }))
+      .catch(next);
+  }
 
-  async getById(req: Request, res: Response) {
-    try {
-      const result = await transactionService.getById(req.params.id);
-      res.json({ success: true, data: result });
-    } catch (err: any) {
-      res
-        .status(err.status || 500)
-        .json({ success: false, message: err.message });
-    }
-  },
+  getAll(req: Request, res: Response, next: NextFunction) {
+    transactionService
+      .getAll()
+      .then((data) => res.json({ success: true, data }))
+      .catch(next);
+  }
 
-  async updateStatus(req: Request, res: Response) {
-    try {
-      const { status } = req.body;
-      const result = await transactionService.updateStatus(
-        req.params.id,
-        status
-      );
-      res.json({ success: true, data: result });
-    } catch (err: any) {
-      res
-        .status(err.status || 500)
-        .json({ success: false, message: err.message });
-    }
-  },
-};
+  getById(req: Request, res: Response, next: NextFunction) {
+    transactionService
+      .getById(req.params.id)
+      .then((data) => res.json({ success: true, data }))
+      .catch(next);
+  }
+
+  updateStatus(req: Request, res: Response, next: NextFunction) {
+    const { status } = req.body;
+
+    transactionService
+      .updateStatus(req.params.id, status)
+      .then((data) => res.json({ success: true, data }))
+      .catch(next);
+  }
+}
+
+export const transactionController = new TransactionController();
