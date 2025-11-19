@@ -13,3 +13,67 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      Role     @default(VISITOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions Transaction[]
+  bookkeepings Bookkeeping[]
+}
+
+enum Role {
+  VISITOR
+  CASHIER
+  SUPERADMIN
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  discount     Discount?
+  transactions Transaction[]
+}
+
+model Discount {
+  id        String   @id @default(uuid())
+  productId String   @unique
+  amount    Int
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  userId      String
+  productId   String
+  amount      Int
+  total       Int
+  paymentType String
+  status      String
+  createdAt   DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Bookkeeping {
+  id        String   @id @default(uuid())
+  cashierId String
+  type      String // income or expense
+  amount    Int
+  createdAt DateTime @default(now())
+
+  cashier User @relation(fields: [cashierId], references: [id])
+}
