@@ -1,6 +1,6 @@
 import { prisma } from "../../../config/prisma";
 
-export const analyticsService = {
+export class AnalyticsService {
   async dashboard() {
     const totalUsers = await prisma.user.count();
     const totalProducts = await prisma.product.count();
@@ -31,5 +31,5 @@ export const analyticsService = {
         expense: bookkeepingExpense._sum.amount || 0,
       },
     };
-  },
-};
+  }
+}

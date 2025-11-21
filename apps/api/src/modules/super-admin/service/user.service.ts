@@ -2,18 +2,18 @@ import { prisma } from "../../../config/prisma";
 import { HttpException } from "../../../core/httpException";
 import { UpdateUserRoleDTO } from "../dto/user.dto";
 
-export const adminUserService = {
+export class AdminUserService {
   async getAllUsers() {
     return prisma.user.findMany({
       orderBy: { createdAt: "desc" },
     });
-  },
+  }
 
   async getUserById(id: string) {
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) throw new HttpException(404, "User not found");
     return user;
-  },
+  }
 
   async updateRole(id: string, dto: UpdateUserRoleDTO) {
     const user = await prisma.user.findUnique({ where: { id } });
@@ -25,7 +25,7 @@ export const adminUserService = {
     });
 
     return updated;
-  },
+  }
 
   async deleteUser(id: string) {
     const user = await prisma.user.findUnique({ where: { id } });
@@ -33,5 +33,5 @@ export const adminUserService = {
 
     await prisma.user.delete({ where: { id } });
     return { message: "User deleted" };
-  },
-};
+  }
+}

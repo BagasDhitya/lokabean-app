@@ -1,11 +1,8 @@
 import { prisma } from "../../config/prisma";
 import { HttpException } from "../../core/httpException";
-import {
-  CreateBookkeepingDTO,
-  FilterBookkeepingDTO,
-} from "./bookkeeping.dto";
+import { CreateBookkeepingDTO, FilterBookkeepingDTO } from "./bookkeeping.dto";
 
-export const bookkeepingService = {
+export class BookkeepingService {
   async create(cashierId: string, dto: CreateBookkeepingDTO) {
     if (!["income", "expense"].includes(dto.type)) {
       throw new HttpException(400, "Invalid type, must be income or expense");
@@ -20,14 +17,14 @@ export const bookkeepingService = {
     });
 
     return result;
-  },
+  }
 
   async getOwn(cashierId: string) {
     return prisma.bookkeeping.findMany({
       where: { cashierId },
       orderBy: { createdAt: "desc" },
     });
-  },
+  }
 
   async getAll(filter: FilterBookkeepingDTO) {
     return prisma.bookkeeping.findMany({
@@ -39,7 +36,7 @@ export const bookkeepingService = {
       },
       orderBy: { createdAt: "desc" },
     });
-  },
+  }
 
   async getById(id: string, userId: string, role: string) {
     const record = await prisma.bookkeeping.findUnique({
@@ -53,5 +50,5 @@ export const bookkeepingService = {
     }
 
     return record;
-  },
-};
+  }
+}

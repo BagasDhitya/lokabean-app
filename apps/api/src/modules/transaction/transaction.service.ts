@@ -3,7 +3,7 @@ import { HttpException } from "../../core/httpException";
 import { CreateTransactionDTO } from "./transaction.dto";
 import snap from "../../utils/midtrans";
 
-export const transactionService = {
+export class TransactionService {
   async create(userId: string, dto: CreateTransactionDTO) {
     const product = await prisma.product.findUnique({
       where: { id: dto.productId },
@@ -17,7 +17,7 @@ export const transactionService = {
     const discount = product.discount ? product.discount.amount : 0;
     const total = product.price * dto.amount - discount;
 
-    // jika paymentType = MIDTRANS
+    // === MIDTRANS PAYMENT ===
     if (dto.paymentType === "MIDTRANS") {
       const midtransPayload = {
         transaction_details: {
@@ -39,7 +39,6 @@ export const transactionService = {
 
       const midtransResponse = await snap.createTransaction(midtransPayload);
 
-      // simpan transaksi (status = PENDING)
       const trx = await prisma.transaction.create({
         data: {
           userId,
@@ -58,7 +57,7 @@ export const transactionService = {
       };
     }
 
-    // jika paymentType = CASH (khusus cashier)
+    // === CASH PAYMENT ===
     const trx = await prisma.transaction.create({
       data: {
         userId,
@@ -71,13 +70,13 @@ export const transactionService = {
     });
 
     return trx;
-  },
+  }
 
   async getAll() {
     return prisma.transaction.findMany({
       include: { user: true, product: true },
     });
-  },
+  }
 
   async getById(id: string) {
     const trx = await prisma.transaction.findUnique({
@@ -86,16 +85,21 @@ export const transactionService = {
     });
 
     if (!trx) throw new HttpException(404, "Transaction not found");
+
     return trx;
-  },
+  }
 
   async updateStatus(id: string, status: string) {
     const trx = await prisma.transaction.findUnique({ where: { id } });
+
     if (!trx) throw new HttpException(404, "Transaction not found");
 
     return prisma.transaction.update({
       where: { id },
       data: { status },
     });
-  },
-};
+  }
+}
+
+// Export instance
+export const transactionService = new TransactionService();
